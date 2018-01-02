@@ -25,13 +25,14 @@ with logwriter.mode("generation") as writer:
     ga_scalar = writer.scalar("generation_A")
     gb_scalar = writer.scalar("generation_B")
 
-with logwriter.mode("A") as writer:
     cyclea_scalar = writer.scalar("cycle_A")
     idta_scalar = writer.scalar("idt_A")
 
-with logwriter.mode("B") as writer:
     cycleb_scalar = writer.scalar("cycle_B")
     idtb_scalar = writer.scalar("idt_B")
+# with logwriter.mode("A") as writer:
+
+# with logwriter.mode("B") as writer:
 
 
 
