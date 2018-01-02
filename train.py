@@ -2,6 +2,7 @@ import time
 from options.train_options import TrainOptions
 from data.data_loader import CreateDataLoader
 from models.models import create_model
+from visualdl import LogWriter
 #from util.visualizer import Visualizer
 
 opt = TrainOptions().parse()
@@ -13,6 +14,19 @@ print('#training images = %d' % dataset_size)
 model = create_model(opt)
 #visualizer = Visualizer(opt)
 total_steps = 0
+
+logwriter = LogWriter('./log')
+
+with logwriter.mode("train") as writer:
+    da_scalar = writer.scalar("decoder_A")
+    ga_scalar = writer.scalar("generation_A")
+    cyclea_scalar = writer.scalar("cycle_A")
+    db_scalar = writer.scalar("decoder_B")
+    gb_scalar = writer.scalar("generation_B")
+    cycleb_scalar = writer.scalar("cycle_B")
+    idta_scalar = writer.scalar("idt_A")
+    idtb_scalar = writer.scalar("idt_B")
+
 
 for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
     epoch_start_time = time.time()
@@ -26,6 +40,18 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
         epoch_iter += opt.batchSize
         model.set_input(data)
         model.optimize_parameters()
+
+        if total_steps % 10 == 0:
+            errors = model.get_current_errors()
+            da_scalar.add_record(total_steps, errors['D_A'])
+            ga_scalar.add_record(total_steps, errors['G_A'])
+            cyclea_scalar.add_record(total_steps, errors['Cyc_A'])
+            db_scalar.add_record(total_steps, errors['D_B'])
+            gb_scalar.add_record(total_steps, errors['G_B'])
+            cycleb_scalar.add_record(total_steps, errors['Cyc_B'])
+            idta_scalar.add_record(total_steps, errors['idt_A'])
+            idtb_scalar.add_record(total_steps, errors['idt_B'])
+
 
         if total_steps % opt.display_freq == 0:
             save_result = total_steps % opt.update_html_freq == 0
