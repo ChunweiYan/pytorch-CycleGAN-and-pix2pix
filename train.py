@@ -17,22 +17,24 @@ total_steps = 0
 
 logwriter = LogWriter('./log')
 
-with logwriter.mode("decoding") as writer:
-    da_scalar = writer.scalar("decoder_A")
-    db_scalar = writer.scalar("decoder_B")
+with logwriter.mode("train") as writer:
+    reala_image = writer.image("real_A")
 
-with logwriter.mode("generation") as writer:
-    ga_scalar = writer.scalar("generation_A")
-    gb_scalar = writer.scalar("generation_B")
+# with logwriter.mode("decoding") as writer:
+#     da_scalar = writer.scalar("decoder_A")
+#     db_scalar = writer.scalar("decoder_B")
 
-    cyclea_scalar = writer.scalar("cycle_A")
-    idta_scalar = writer.scalar("idt_A")
+# with logwriter.mode("generation") as writer:
+#     ga_scalar = writer.scalar("generation_A")
+#     gb_scalar = writer.scalar("generation_B")
 
-    cycleb_scalar = writer.scalar("cycle_B")
-    idtb_scalar = writer.scalar("idt_B")
 # with logwriter.mode("A") as writer:
+#     cyclea_scalar = writer.scalar("cycle_A")
+#     idta_scalar = writer.scalar("idt_A")
 
 # with logwriter.mode("B") as writer:
+#     cycleb_scalar = writer.scalar("cycle_B")
+#     idtb_scalar = writer.scalar("idt_B")
 
 
 
@@ -40,6 +42,7 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
     epoch_start_time = time.time()
     epoch_iter = 0
 
+    reala_image.start_sampling()
     for i, data in enumerate(dataset):
         iter_start_time = time.time()
         #visualizer.reset()
@@ -49,21 +52,27 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
         model.set_input(data)
         model.optimize_parameters()
 
-        if total_steps % 10 == 0:
-            errors = model.get_current_errors()
-            da_scalar.add_record(total_steps, errors['D_A'])
-            ga_scalar.add_record(total_steps, errors['G_A'])
-            cyclea_scalar.add_record(total_steps, errors['Cyc_A'])
-            db_scalar.add_record(total_steps, errors['D_B'])
-            gb_scalar.add_record(total_steps, errors['G_B'])
-            cycleb_scalar.add_record(total_steps, errors['Cyc_B'])
-            idta_scalar.add_record(total_steps, errors['idt_A'])
-            idtb_scalar.add_record(total_steps, errors['idt_B'])
+        # if total_steps % 10 == 0:
+        #     errors = model.get_current_errors()
+        #     da_scalar.add_record(total_steps, errors['D_A'])
+        #     ga_scalar.add_record(total_steps, errors['G_A'])
+        #     cyclea_scalar.add_record(total_steps, errors['Cyc_A'])
+        #     db_scalar.add_record(total_steps, errors['D_B'])
+        #     gb_scalar.add_record(total_steps, errors['G_B'])
+        #     cycleb_scalar.add_record(total_steps, errors['Cyc_B'])
+        #     idta_scalar.add_record(total_steps, errors['idt_A'])
+        #     idtb_scalar.add_record(total_steps, errors['idt_B'])
 
 
         if total_steps % 10 == 0:
             visuals = model.get_current_visuals()
             print visuals
+
+            idx = reala_image.is_sample_taken()
+            if idx != -1:
+                data = visuals['real_A']
+                reala_image.set_sample(idx, data.flatten(), data.shape)
+
 
         if total_steps % opt.display_freq == 0:
             save_result = total_steps % opt.update_html_freq == 0
@@ -92,3 +101,5 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
     print('End of epoch %d / %d \t Time Taken: %d sec' %
           (epoch, opt.niter + opt.niter_decay, time.time() - epoch_start_time))
     model.update_learning_rate()
+
+    reala_image.finish_sampling()
