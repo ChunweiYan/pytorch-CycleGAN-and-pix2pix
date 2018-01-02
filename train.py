@@ -17,15 +17,22 @@ total_steps = 0
 
 logwriter = LogWriter('./log')
 
-with logwriter.mode("train") as writer:
+with logwriter.mode("decoding") as writer:
     da_scalar = writer.scalar("decoder_A")
-    ga_scalar = writer.scalar("generation_A")
-    cyclea_scalar = writer.scalar("cycle_A")
     db_scalar = writer.scalar("decoder_B")
+
+with logwriter.mode("generation") as writer:
+    ga_scalar = writer.scalar("generation_A")
     gb_scalar = writer.scalar("generation_B")
-    cycleb_scalar = writer.scalar("cycle_B")
+
+with logwriter.mode("A") as writer:
+    cyclea_scalar = writer.scalar("cycle_A")
     idta_scalar = writer.scalar("idt_A")
+
+with logwriter.mode("B") as writer:
+    cycleb_scalar = writer.scalar("cycle_B")
     idtb_scalar = writer.scalar("idt_B")
+
 
 
 for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
