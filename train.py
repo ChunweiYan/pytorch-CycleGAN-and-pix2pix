@@ -18,7 +18,7 @@ total_steps = 0
 logwriter = LogWriter('./log')
 
 with logwriter.mode("train") as writer:
-    reala_image = writer.image("real_A")
+    reala_image = writer.image("real_A", 10, 1)
 
 # with logwriter.mode("decoding") as writer:
 #     da_scalar = writer.scalar("decoder_A")
