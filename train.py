@@ -75,12 +75,12 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
             idx = reala_image.is_sample_taken()
             if idx != -1:
                 data = visuals['real_A']
-                reala_image.set_sample(idx, data.flatten(), data.shape)
+                reala_image.set_sample(idx, data.shape, data.flatten())
 
             idx = fakea_image.is_sample_taken()
             if idx != -1:
                 data = visuals['fake_A']
-                fakea_image.set_sample(idx, data.flatten(), data.shape)
+                fakea_image.set_sample(idx, data.shape, data.flatten())
 
 
         if total_steps % opt.display_freq == 0:
