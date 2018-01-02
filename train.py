@@ -53,6 +53,10 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
             idtb_scalar.add_record(total_steps, errors['idt_B'])
 
 
+        if total_steps % 10 == 0:
+            visuals = model.get_current_visuals()
+            print visuals
+
         if total_steps % opt.display_freq == 0:
             save_result = total_steps % opt.update_html_freq == 0
             #visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
