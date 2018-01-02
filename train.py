@@ -17,8 +17,11 @@ total_steps = 0
 
 logwriter = LogWriter('./log')
 
-with logwriter.mode("train") as writer:
+with logwriter.mode("real") as writer:
     reala_image = writer.image("real_A", 10, 1)
+with logwriter.mode("generation") as writer:
+    fakea_image = writer.image("fake_A", 10, 1)
+
 
 # with logwriter.mode("decoding") as writer:
 #     da_scalar = writer.scalar("decoder_A")
@@ -43,6 +46,7 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
     epoch_iter = 0
 
     reala_image.start_sampling()
+    fakea_image.start_sampling()
     for i, data in enumerate(dataset):
         iter_start_time = time.time()
         #visualizer.reset()
@@ -72,6 +76,11 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
             if idx != -1:
                 data = visuals['real_A']
                 reala_image.set_sample(idx, data.flatten(), data.shape)
+
+            idx = fakea_image.is_sample_taken()
+            if idx != -1:
+                data = visuals['fake_A']
+                fakea_image.set_sample(idx, data.flatten(), data.shape)
 
 
         if total_steps % opt.display_freq == 0:
@@ -103,3 +112,4 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
     model.update_learning_rate()
 
     reala_image.finish_sampling()
+    fakea_image.finish_sampling()
