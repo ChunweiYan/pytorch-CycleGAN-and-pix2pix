@@ -19,25 +19,25 @@ logwriter = LogWriter('./log')
 
 with logwriter.mode("real") as writer:
     reala_image = writer.image("real_A", 10, 1)
-with logwriter.mode("generation") as writer:
     fakea_image = writer.image("fake_A", 10, 1)
-
-
-# with logwriter.mode("decoding") as writer:
-#     da_scalar = writer.scalar("decoder_A")
-#     db_scalar = writer.scalar("decoder_B")
-
 # with logwriter.mode("generation") as writer:
-#     ga_scalar = writer.scalar("generation_A")
-#     gb_scalar = writer.scalar("generation_B")
 
-# with logwriter.mode("A") as writer:
-#     cyclea_scalar = writer.scalar("cycle_A")
-#     idta_scalar = writer.scalar("idt_A")
 
-# with logwriter.mode("B") as writer:
-#     cycleb_scalar = writer.scalar("cycle_B")
-#     idtb_scalar = writer.scalar("idt_B")
+with logwriter.mode("decoding") as writer:
+    da_scalar = writer.scalar("decoder_A")
+    db_scalar = writer.scalar("decoder_B")
+
+with logwriter.mode("generation") as writer:
+    ga_scalar = writer.scalar("generation_A")
+    gb_scalar = writer.scalar("generation_B")
+
+with logwriter.mode("A") as writer:
+    cyclea_scalar = writer.scalar("cycle_A")
+    idta_scalar = writer.scalar("idt_A")
+
+with logwriter.mode("B") as writer:
+    cycleb_scalar = writer.scalar("cycle_B")
+    idtb_scalar = writer.scalar("idt_B")
 
 
 
@@ -56,16 +56,16 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
         model.set_input(data)
         model.optimize_parameters()
 
-        # if total_steps % 10 == 0:
-        #     errors = model.get_current_errors()
-        #     da_scalar.add_record(total_steps, errors['D_A'])
-        #     ga_scalar.add_record(total_steps, errors['G_A'])
-        #     cyclea_scalar.add_record(total_steps, errors['Cyc_A'])
-        #     db_scalar.add_record(total_steps, errors['D_B'])
-        #     gb_scalar.add_record(total_steps, errors['G_B'])
-        #     cycleb_scalar.add_record(total_steps, errors['Cyc_B'])
-        #     idta_scalar.add_record(total_steps, errors['idt_A'])
-        #     idtb_scalar.add_record(total_steps, errors['idt_B'])
+        if total_steps % 10 == 0:
+            errors = model.get_current_errors()
+            da_scalar.add_record(total_steps, errors['D_A'])
+            ga_scalar.add_record(total_steps, errors['G_A'])
+            cyclea_scalar.add_record(total_steps, errors['Cyc_A'])
+            db_scalar.add_record(total_steps, errors['D_B'])
+            gb_scalar.add_record(total_steps, errors['G_B'])
+            cycleb_scalar.add_record(total_steps, errors['Cyc_B'])
+            idta_scalar.add_record(total_steps, errors['idt_A'])
+            idtb_scalar.add_record(total_steps, errors['idt_B'])
 
 
         if total_steps % 10 == 0:
