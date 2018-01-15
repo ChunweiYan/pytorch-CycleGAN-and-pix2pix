@@ -49,12 +49,12 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
     fakea_image.start_sampling()
     for i, data in enumerate(dataset):
         iter_start_time = time.time()
-        #visualizer.reset()
-        print 'visulizer reset'
         total_steps += opt.batchSize
         epoch_iter += opt.batchSize
         model.set_input(data)
         model.optimize_parameters()
+
+        print 'model', model.model
 
         if total_steps % 10 == 0:
             errors = model.get_current_errors()
