@@ -38,8 +38,8 @@ with logwriter.mode("fake") as writer:
     cycleb_scalar = writer.scalar("right/cycle_B")
     idtb_scalar = writer.scalar("right/idt_B")
 
-weight_histogram = logwriter.histogram("1.weight", 100)
-bias_histogram = logwriter.histogram("1.bias", 100)
+weight_histogram = logwriter.histogram("1.weight", 50)
+bias_histogram = logwriter.histogram("1.bias", 10)
 
 
 
