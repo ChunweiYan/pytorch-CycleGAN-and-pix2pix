@@ -65,7 +65,7 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
         model.optimize_parameters()
 
         if total_steps % 2 == 0:
-            print 'model', model.netG_B.model
+            print 'model', model.netG_B.model.state_dict()
             errors = model.get_current_errors()
             da_scalar.add_record(total_steps, errors['D_A'])
             ga_scalar.add_record(total_steps, errors['G_A'])
