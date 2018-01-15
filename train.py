@@ -3,8 +3,8 @@ import random
 from options.train_options import TrainOptions
 from data.data_loader import CreateDataLoader
 from models.models import create_model
+import numpy as np
 from visualdl import LogWriter
-#from util.visualizer import Visualizer
 
 opt = TrainOptions().parse()
 data_loader = CreateDataLoader(opt)
@@ -22,7 +22,6 @@ with logwriter.mode("real") as writer:
     reala_image = writer.image("left/real_A", 10, 1)
     fakea_image = writer.image("left/fake_A", 10, 1)
 
-
 with logwriter.mode("fake") as writer:
     da_scalar = writer.scalar("right/decoder_A")
     db_scalar = writer.scalar("right/decoder_B")
@@ -38,6 +37,10 @@ with logwriter.mode("real") as writer:
 with logwriter.mode("fake") as writer:
     cycleb_scalar = writer.scalar("right/cycle_B")
     idtb_scalar = writer.scalar("right/idt_B")
+
+weight_histogram = logwriter.histogram("1.weight", 100)
+bias_histogram = logwriter.histogram("1.bias", 100)
+
 
 
 scalar_counter = 0.
@@ -65,8 +68,8 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
         model.optimize_parameters()
 
         if total_steps % 2 == 0:
-            print 'model', [v for v in model.netG_B.model.state_dict().keys()]
             errors = model.get_current_errors()
+            weights = model.netG_B.model.state_dict()
             da_scalar.add_record(total_steps, errors['D_A'])
             ga_scalar.add_record(total_steps, errors['G_A'])
             cyclea_scalar.add_record(total_steps, errors['Cyc_A'])
@@ -76,6 +79,8 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
             idta_scalar.add_record(total_steps, errors['idt_A'])
             idtb_scalar.add_record(total_steps, errors['idt_B'])
 
+            weight_histogram.add_record(total_steps, np.array(weights['1.weight']).flatten())
+            bias_histogram.add_record(total_steps, np.array(weights['1.bias']).flatten())
 
         if image_start and total_steps % 2 == 0:
             visuals = model.get_current_visuals()
