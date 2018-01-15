@@ -81,11 +81,11 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
 
             data = np.array(weights['1.weight']).flatten()
             print 'data', data
-            weight_histogram.add_record(total_steps, data)
+            # weight_histogram.add_record(total_steps, data)
             data = np.array(weights['1.bias']).flatten()
             print 'data2', data
-            bias_histogram.add_record(total_steps, data)
-
+            # bias_histogram.add_record(total_steps, data)
+ 
         if image_start and total_steps % 2 == 0:
             visuals = model.get_current_visuals()
 
