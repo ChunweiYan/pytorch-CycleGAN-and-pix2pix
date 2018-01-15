@@ -1,4 +1,5 @@
 import time
+import random
 from options.train_options import TrainOptions
 from data.data_loader import CreateDataLoader
 from models.models import create_model
@@ -15,48 +16,55 @@ model = create_model(opt)
 #visualizer = Visualizer(opt)
 total_steps = 0
 
-logwriter = LogWriter('./log')
+logwriter = LogWriter('./log', 20)
 
 with logwriter.mode("real") as writer:
-    reala_image = writer.image("real_A", 10, 1)
-    fakea_image = writer.image("fake_A", 10, 1)
-# with logwriter.mode("generation") as writer:
+    reala_image = writer.image("left/real_A", 10, 1)
+    fakea_image = writer.image("left/fake_A", 10, 1)
 
 
-with logwriter.mode("decoding") as writer:
-    da_scalar = writer.scalar("decoder_A")
-    db_scalar = writer.scalar("decoder_B")
+with logwriter.mode("fake") as writer:
+    da_scalar = writer.scalar("right/decoder_A")
+    db_scalar = writer.scalar("right/decoder_B")
 
-with logwriter.mode("generation") as writer:
-    ga_scalar = writer.scalar("generation_A")
-    gb_scalar = writer.scalar("generation_B")
+with logwriter.mode("fake") as writer:
+    ga_scalar = writer.scalar("left/generation_A")
+    gb_scalar = writer.scalar("right/generation_B")
 
-with logwriter.mode("A") as writer:
-    cyclea_scalar = writer.scalar("cycle_A")
-    idta_scalar = writer.scalar("idt_A")
+with logwriter.mode("real") as writer:
+    cyclea_scalar = writer.scalar("left/cycle_A")
+    idta_scalar = writer.scalar("left/idt_A")
 
-with logwriter.mode("B") as writer:
-    cycleb_scalar = writer.scalar("cycle_B")
-    idtb_scalar = writer.scalar("idt_B")
+with logwriter.mode("fake") as writer:
+    cycleb_scalar = writer.scalar("right/cycle_B")
+    idtb_scalar = writer.scalar("right/idt_B")
 
 
+scalar_counter = 0.
+image_step_cycle = 20
+image_start = False
 
 for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
     epoch_start_time = time.time()
     epoch_iter = 0
+    print 'epoch', epoch_iter
 
-    reala_image.start_sampling()
-    fakea_image.start_sampling()
-    for i, data in enumerate(dataset):
+    for i, data in enumerate(dataset, 50):
         iter_start_time = time.time()
-        #visualizer.reset()
-        print 'visulizer reset'
+
+        if total_steps % image_step_cycle == 0:
+            print 'image start sampling'
+            reala_image.start_sampling()
+            fakea_image.start_sampling()
+            image_start = True
+
+
         total_steps += opt.batchSize
         epoch_iter += opt.batchSize
         model.set_input(data)
         model.optimize_parameters()
 
-        if total_steps % 10 == 0:
+        if total_steps % 2 == 0:
             errors = model.get_current_errors()
             da_scalar.add_record(total_steps, errors['D_A'])
             ga_scalar.add_record(total_steps, errors['G_A'])
@@ -68,11 +76,11 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
             idtb_scalar.add_record(total_steps, errors['idt_B'])
 
 
-        if total_steps % 10 == 0:
+        if image_start and total_steps % 2 == 0:
             visuals = model.get_current_visuals()
-            print visuals
 
             idx = reala_image.is_sample_taken()
+            print 'idx:', idx
             if idx != -1:
                 data = visuals['real_A']
                 reala_image.set_sample(idx, data.shape, data.flatten())
@@ -83,23 +91,15 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
                 fakea_image.set_sample(idx, data.shape, data.flatten())
 
 
-        if total_steps % opt.display_freq == 0:
-            save_result = total_steps % opt.update_html_freq == 0
-            #visualizer.display_current_results(model.get_current_visuals(), epoch, save_result)
-            print 'visualizer display current result'
-
-        if total_steps % opt.print_freq == 0:
-            errors = model.get_current_errors()
-            t = (time.time() - iter_start_time) / opt.batchSize
-            #visualizer.print_current_errors(epoch, epoch_iter, errors, t)
-            print 'visualizer print current errors', epoch, epoch_iter, errors
-            # if opt.display_id > 0:
-            #     visualizer.plot_current_errors(epoch, float(epoch_iter)/dataset_size, opt, errors)
-
         if total_steps % opt.save_latest_freq == 0:
             print('saving the latest model (epoch %d, total_steps %d)' %
                   (epoch, total_steps))
             model.save('latest')
+
+        if total_steps % image_step_cycle == 0:
+            reala_image.finish_sampling()
+            fakea_image.finish_sampling()
+            image_start = False
 
     if epoch % opt.save_epoch_freq == 0:
         print('saving the model at the end of epoch %d, iters %d' %
@@ -111,5 +111,3 @@ for epoch in range(opt.epoch_count, opt.niter + opt.niter_decay + 1):
           (epoch, opt.niter + opt.niter_decay, time.time() - epoch_start_time))
     model.update_learning_rate()
 
-    reala_image.finish_sampling()
-    fakea_image.finish_sampling()
